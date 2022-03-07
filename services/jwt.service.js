@@ -1,5 +1,6 @@
 
 const jwt = require('jsonwebtoken');
+const redisService = require('../services/redis.service');
 
 const secretkey = 'test123456789';
 
@@ -31,7 +32,12 @@ const verifyBearerToken =  async (auth) => {
 const checkJwt = async (req, res, next) => {
     const headers = req.headers;
     const auth = headers['authorization'];
+    const token = auth.split(' ')[1];
     if (auth) {
+        const gData = await redisService.getData(token);
+        if(!gData) {
+            return res.status(403).send( {message: 'request forbidden'});
+        }
         const {err, verify} = await verifyBearerToken(auth);
         if (err) {
             return res.status(401).send({message: 'Invalid Token'})

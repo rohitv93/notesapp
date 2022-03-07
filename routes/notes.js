@@ -4,18 +4,21 @@ const res = require('express/lib/response');
 var router = express.Router();
 const db = require('../models');
 const jwt = require('../services/jwt.service');
+const schema = require('../schema/index');
 
 
 
-router.post('/makenote', jwt.checkJwt,  async (req, res) => {
+router.post('/makenote', jwt.checkJwt, async (req, res) => {
     try {
-        const title = req.body.title;
-        const body = req.body.body;
-        const image = req.body.image;
-        const date = req.body.date;
-
+        const data = req.body;
+        console.log(data);
+        const { error, value } = schema.notesschema.validate( data );
+        if (error){
+            return res.status(400).send(error.message)
+        }
+        const date = new Date()
         const userdata = res.locals.verify;
-        const note = await db.Note.create({ userId: userdata.id, title: title, body: body, date: date });
+        const note = await db.Note.create({ userId: userdata.id, title: data.title, body: data.body, date: date });
         return res.status(200).send({ data: note });
     }
     catch (err) {
@@ -48,25 +51,28 @@ router.get('/note/:id', jwt.checkJwt, async (req, res) => {
             where: {
                 userId: userdata.id,
                 id: notesid
-        }
+            }
         })
         return res.status(200).send({ data: note });
     }
     catch (err) {
-    console.log(err);
-    return res.status(500).send({ msg: err.message });
-}
+        console.log(err);
+        return res.status(500).send({ msg: err.message });
+    }
 });
 
 router.put('/editnote/:id', jwt.checkJwt, async (req, res) => {
     try {
+        const data = req.body;
+        console.log(data);
+        const { error, value } = schema.notesschema.validate( data );
+        if (error){
+            return res.status(400).send(error.message)
+        }
         const userdata = res.locals.verify;
         const notesid = req.params.id;
-        const title = req.body.title;
-        const body = req.body.body;
-        const image = req.body.image;
-
-        const note = await db.Note.update({ title: title, body: body, image, image }, {
+        
+        const note = await db.Note.update({ title: data.title, body: data.body, image: data.image }, {
             where: {
                 userId: userdata.id,
                 id: notesid
@@ -91,12 +97,12 @@ router.delete('/delete/:id', jwt.checkJwt, async (req, res) => {
             }
 
         })
-        return res.status(200).send({msg: 'note deleted'});
+        return res.status(200).send({ msg: 'note deleted' });
     }
-    catch(err) {
+    catch (err) {
         console.log(err);
-        return res.status(500).send({msg: err.message});
+        return res.status(500).send({ msg: err.message });
     }
 });
 
-    module.exports = router;
+module.exports = router;

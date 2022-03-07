@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 const db = require('../models');
 const jwt = require('../services/jwt.service');
 const _ = require('underscore');
+const schema = require('../schema/index');
+const redisService = require('../services/redis.service')
 
 
 const salt = bcrypt.genSaltSync(10);
@@ -17,13 +19,17 @@ router.get('/', function (req, res, next) {
 
 router.post('/signup', async (req, res) => {
   try {
-    const username = req.body.username;
-    const password = req.body.password;
-    const email = req.body.email;
+    const data = req.body;
+    console.log(data);
+    const { error, value } = schema.users.userSchema.validate( data );
+    if (error){
+      return res.status(400).send(error.message)
+    }
+    
 
-    const hash = bcrypt.hashSync(password, salt);
+    const hash = bcrypt.hashSync(data.password, salt);
 
-    const User = await db.User.create({ username: username, password: hash, email: email });
+    const User = await db.User.create({ username: data.username, password: hash, email: data.email });
     return res.status(200).send({ data: User });
   }
   catch (err) {
@@ -34,21 +40,30 @@ router.post('/signup', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
-    const password = req.body.password;
-    const email = req.body.email;
+    const data = req.body;
+    console.log(data);
+    const { error, value } = schema.users.loginSchema.validate( data );
+    if (error){
+      return res.status(400).send(error.message)
+    }
 
 
     const User = await db.User.findOne({
       where: {
-        email: email
+        email: data.email
       }
     });
-    const result = bcrypt.compareSync(password, User.password)
+    if(!User){
+      return res.status(400).send({msg: 'Invalid username'})
+    }
+    const result = bcrypt.compareSync(data.password, User.password)
 
     if (result == true) {
       const user = _.omit(User.dataValues, ['password', 'createdAt', 'updatedAt']); 
 
       const token = jwt.generateToken(user);
+
+      const sData = redisService.setData(token, data.email);
 
       return res.status(200).send({ token: token });
     } else {
@@ -95,6 +110,7 @@ router.put('/edituser', jwt.checkJwt, async (req, res) => {
 
 router.delete('/delete', jwt.checkJwt,  async (req, res) => {
   try {
+
     const userdata = res.locals.verify;
     const User = await db.User.destroy({
       where: {
@@ -125,6 +141,15 @@ router.get('/user', jwt.checkJwt, async (req, res) => {
     return res.status(500).send({ msg: err.message });
   }
 });
+
+router.get('/logout', jwt.checkJwt, async (req, res) => {
+   const headers = req.headers;
+   const auth = headers['authorization'];
+   const token = auth.split(' ')[1];
+
+   const dData = await redisService.delData(token);
+   return res.status(200).send({msg: 'logout succesfull' });
+})
 
 
 module.exports = router;
