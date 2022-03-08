@@ -6,6 +6,8 @@ const db = require('../models');
 const jwt = require('../services/jwt.service');
 const schema = require('../schema/index');
 
+const upload = require('../services/multer.services');
+
 
 
 router.post('/makenote', jwt.checkJwt, async (req, res) => {
@@ -26,6 +28,10 @@ router.post('/makenote', jwt.checkJwt, async (req, res) => {
         return res.status(500).send({ msg: err.message });
     }
 });
+
+router.post('/imgupload', upload.single('img'), (req, res) => {
+ return res.status(200).send()
+} );
 
 router.get('/allnotes', jwt.checkJwt, async (req, res) => {
     try {

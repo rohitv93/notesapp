@@ -41,7 +41,6 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const data = req.body;
-    console.log(data);
     const { error, value } = schema.users.loginSchema.validate( data );
     if (error){
       return res.status(400).send(error.message)

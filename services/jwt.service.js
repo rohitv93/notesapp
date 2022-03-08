@@ -1,19 +1,19 @@
 
 const jwt = require('jsonwebtoken');
 const redisService = require('../services/redis.service');
+require('dotenv').config();
 
-const secretkey = 'test123456789';
 
 const generateToken = (payload) => {
 
- return jwt.sign(payload, secretkey, {expiresIn: '8h'});
+ return jwt.sign(payload, process.env.SECRET_KEY, {expiresIn: '8h'});
 
 }
    
 const verifyToken =  (token) => {
     if(!token) return {};
     return new Promise((resolve,reject) =>
-        jwt.verify(token, secretkey, (err,decoded) => err ? reject({}) : resolve(decoded))
+        jwt.verify(token, process.env.SECRET_KEY, (err,decoded) => err ? reject({}) : resolve(decoded))
     );
 }
 
