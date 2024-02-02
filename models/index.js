@@ -1,7 +1,8 @@
 const Datatypes = require('sequelize');
+require('dotenv').config();
 
-const connection = new Datatypes('todos', 'admin' , 'Password4321', {
-    host: 'testdb1.corayvn9jigk.ap-south-1.rds.amazonaws.com',
+const connection = new Datatypes( process.env.DB_SCHEMA, process.env.DB_USER , process.env.DB_PASS, {
+    host: process.env.DB_HOST,
     dialect: 'mysql',
     operatorsAliases: false,
 });
