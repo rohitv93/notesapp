@@ -5,6 +5,7 @@ const connection = new Datatypes( process.env.DB_SCHEMA, process.env.DB_USER , p
     host: process.env.DB_HOST,
     dialect: 'mysql',
     operatorsAliases: false,
+    port: process.env.DB_PORT
 });
 
 const db = {};

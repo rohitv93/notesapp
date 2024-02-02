@@ -1,4 +1,3 @@
-const e = require('express');
 var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt');
@@ -7,7 +6,6 @@ const jwt = require('../services/jwt.service');
 const _ = require('underscore');
 const schema = require('../schema/index');
 const redisService = require('../services/redis.service')
-
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -26,7 +24,6 @@ router.post('/signup', async (req, res) => {
       return res.status(400).send(error.message)
     }
     
-
     const hash = bcrypt.hashSync(data.password, salt);
 
     const User = await db.User.create({ username: data.username, password: hash, email: data.email });

@@ -1,14 +1,9 @@
-const e = require('express');
 var express = require('express');
-const res = require('express/lib/response');
 var router = express.Router();
 const db = require('../models');
 const jwt = require('../services/jwt.service');
 const schema = require('../schema/index');
-
 const upload = require('../services/multer.services');
-
-
 
 router.post('/makenote', jwt.checkJwt, async (req, res) => {
     try {

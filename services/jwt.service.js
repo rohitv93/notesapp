@@ -1,19 +1,15 @@
-
 const jwt = require('jsonwebtoken');
 const redisService = require('../services/redis.service');
 require('dotenv').config();
 
-
 const generateToken = (payload) => {
-
- return jwt.sign(payload, process.env.SECRET_KEY, {expiresIn: '8h'});
-
+    return jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '8h' });
 }
-   
-const verifyToken =  (token) => {
-    if(!token) return {};
-    return new Promise((resolve,reject) =>
-        jwt.verify(token, process.env.SECRET_KEY, (err,decoded) => err ? reject({}) : resolve(decoded))
+
+const verifyToken = (token) => {
+    if (!token) return {};
+    return new Promise((resolve, reject) =>
+        jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => err ? reject({}) : resolve(decoded))
     );
 }
 
@@ -23,10 +19,10 @@ const to = (promise) => {
     }).catch(err => [err]);
 }
 
-const verifyBearerToken =  async (auth) => {
+const verifyBearerToken = async (auth) => {
     const token = auth.split(' ')[1];
     const [err, verify] = await to(verifyToken(token));
-    return {err, verify};
+    return { err, verify };
 }
 
 const checkJwt = async (req, res, next) => {
@@ -35,22 +31,19 @@ const checkJwt = async (req, res, next) => {
     const token = auth.split(' ')[1];
     if (auth) {
         const gData = await redisService.getData(token);
-        if(!gData) {
-            return res.status(403).send( {message: 'request forbidden'});
+        if (!gData) {
+            return res.status(403).send({ message: 'request forbidden' });
         }
-        const {err, verify} = await verifyBearerToken(auth);
+        const { err, verify } = await verifyBearerToken(auth);
         if (err) {
-            return res.status(401).send({message: 'Invalid Token'})
+            return res.status(401).send({ message: 'Invalid Token' })
         } else {
-           
-                // logger.info('Request from ', verify.data, ' for ', req.method, req.url)
-                res.locals.verify = verify;
-                return next();
-           
+            res.locals.verify = verify;
+            return next();
         }
     } else {
-        return res.status(401).send({message: 'No Token Provided'})
+        return res.status(401).send({ message: 'No Token Provided' })
     }
 }
 
-module.exports = {generateToken, checkJwt}
+module.exports = { generateToken, checkJwt }
