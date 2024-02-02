@@ -37,7 +37,6 @@ const checkJwt = async (req, res, next) => {
             return res.status(401).send({message: 'Invalid Token'})
         } else {
            
-                // logger.info('Request from ', verify.data, ' for ', req.method, req.url)
                 res.locals.verify = verify;
                 return next();
            
